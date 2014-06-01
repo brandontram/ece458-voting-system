@@ -14,16 +14,19 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print "{} wrote:".format(self.client_address[0])
         print self.data
+
         message_and_hmac = self.data.split('&')
         message = message_and_hmac[0]
         incoming_digest = message_and_hmac[1]
         expected_digest = make_digest(message)
         print "incoming: " + incoming_digest
         print "expected: " + expected_digest
+
         if expected_digest != incoming_digest:
             print "DATA CORRUPTED"
         else:
             print "DATA OK"
+
         self.request.sendall(self.data.upper())
 
 if __name__ == '__main__':
