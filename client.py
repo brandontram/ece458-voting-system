@@ -1,8 +1,12 @@
 import socket
 import sys
+import hmac
 
 HOST, PORT = "localhost", 9999
 data = " ".join(sys.argv[1:])
+
+digest_maker = hmac.new('super-secret-key')
+digest_maker.update(data)
 
 # Create a socket (SOCK_STREAM means a TCP socket)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -17,5 +21,6 @@ try:
 finally:
     sock.close()
 
+print "Digested: {}".format(digest_maker.hexdigest())
 print "Sent:     {}".format(data)
 print "Received: {}".format(received)
