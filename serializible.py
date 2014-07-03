@@ -11,6 +11,15 @@ class Serializible:
 
     def __init__(self, command):
         self.command = command
+        self.encrypted = False
+
+    def encryptSelf(self):
+        """Encrypts all instance variables"""
+        # this function should be more strict, maybe the instance variables should be encrypted during initilization
+        # yep, do it that way ^, then wouldnt need to have the encrypted instance variable
+        # or maybe it doesnt matter that the data here is not encrypted, think about during a session, all of the data
+        # is visible, we just want the transfer of the data from kiosk to server to be secure
+        self.encrypted = True
         
 
 
