@@ -17,12 +17,14 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         if self.data.command == 'getClients':
             print "sending clients"
             f = self.request.makefile('wb', 2048)
-            pickle.dump(['John', 'Andrew_ng', 'Bill'], f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump({'1':'John', '2':'Andrew_ng', '3':'Bill'}, f, pickle.HIGHEST_PROTOCOL)
             print 'clients sent'
+        elif self.data.command == 'postVote':
+            print 'vote received: ' + self.data.payload
+            pickle.dump("Vote received by server", f, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == '__main__':
     HOST, PORT = "localhost", 10000
 
     server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
-
     server.serve_forever()
