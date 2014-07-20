@@ -1,6 +1,6 @@
 import pickle
 import sys
-import socket
+import socket, ssl
 
 GET_CLIENTS = 'getClients'
 POST_VOTE = 'postVote'
@@ -28,16 +28,21 @@ class Serializible:
 def sendSerialized(_socket, _serializible):
     try:
         # Connect to server and send data
-        _socket.connect((HOST, PORT))
-        f = _socket.makefile('wb', 2048)
+        ssl_sock = ssl.wrap_socket(_socket,
+                                ca_certs="cert.pem",
+                                cert_reqs=ssl.CERT_REQUIRED,
+                                ssl_version=ssl.PROTOCOL_TLSv1)
+        ssl_sock.connect((HOST, PORT))
+
+        f = ssl_sock.makefile('wb', 2048)
         pickle.dump(_serializible, f, pickle.HIGHEST_PROTOCOL)
 
         # Receive data from the server and shut down
-        f = _socket.makefile('rb', 2048)
+        f = ssl_sock.makefile('rb', 2048)
         data = pickle.load(f)
         print 'successfully received pickle: ', data
         return data
     except:
         print 'could not send pickle: ', sys.exc_info()[0]
     finally:
-        _socket.close()
+        ssl_sock.close()
