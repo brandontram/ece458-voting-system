@@ -4,10 +4,11 @@ from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from OpenSSL import SSL
 
-HOST, PORT = 'localhost', 8000
+HOST, PORT = socket.gethostname(), 8000
 
 class SecureHTTPServer(HTTPServer):
     def __init__(self, server_address, HandlerClass):
+        print socket.gethostname()
         BaseServer.__init__(self, server_address, HandlerClass)
         ctx = SSL.Context(SSL.TLSv1_METHOD)
         #server.pem's location (containing the server private key and
