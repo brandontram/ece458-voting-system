@@ -1,10 +1,13 @@
-import socket, os
+import socket, os, operator
 from SocketServer import BaseServer
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from OpenSSL import SSL
+import markup
 
 HOST, PORT = socket.gethostname(), 8000
+
+candidates = {'1':'John', '2':'Andrew Ng', '3':'Bill'}
 
 class SecureHTTPServer(HTTPServer):
     def __init__(self, server_address, HandlerClass):
@@ -27,6 +30,25 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.connection = self.request
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
         self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
+
+    def do_GET(self):
+        self.send_response(200, 'OK')
+        self.send_header('Content-type', 'html')
+        self.end_headers()
+
+        page = markup.page()
+        page.init(title = "ECE 458 Voting System")
+        page.form()
+
+        sortedDict = sorted(candidates.iteritems(), key=operator.itemgetter(0))
+        for key, value in sortedDict:
+            page.input(type='radio', name='candidate', value='key')
+            page.p(value)
+
+        page.form.close()
+        page.input(type='submit', value='submit')
+
+        self.wfile.write(bytes(page))
 
 def test(HandlerClass = SecureHTTPRequestHandler,
          ServerClass = SecureHTTPServer):
