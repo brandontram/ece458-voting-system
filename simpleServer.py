@@ -8,6 +8,7 @@ import markup
 HOST, PORT = socket.gethostname(), 8000
 
 candidates = {'1':'John', '2':'Andrew Ng', '3':'Bill'}
+radioBtnFieldName = 'candidate'
 
 class SecureHTTPServer(HTTPServer):
     def __init__(self, server_address, HandlerClass):
@@ -41,7 +42,10 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         sortedDict = sorted(candidates.iteritems(), key=operator.itemgetter(0))
         for key, value in sortedDict:
-            page.input(type='radio', name='candidate', value='key')
+            if (key == '1'):
+                page.input(type='radio', name=radioBtnFieldName, value=key, checked=True)
+            else:
+                page.input(type='radio', name='candidate', value=key)
             page.p(value)
 
         page.input(type='submit', value='submit')
@@ -55,7 +59,23 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.wfile.write(page)
 
     def do_POST(self):
-        print "POST!"
+        postBodyLen = int(self.headers.getheader('content-length', 0))
+        postBody = self.rfile.read(postBodyLen)
+
+        votedId = postBody[len(radioBtnFieldName) + 1:]
+
+        page = markup.page()
+        page.init(title = "Thanks for voting!")
+        page.p("You voted for candidate " + votedId + ", " + candidates[votedId])
+        page.button(type='button', onclick="history.go(-1);return true;")
+        page.p("Vote Again")
+        page.button.close()
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-length", len(str(page)))
+        self.end_headers()
+        self.wfile.write(page)
 
 def test(HandlerClass = SecureHTTPRequestHandler,
          ServerClass = SecureHTTPServer):
