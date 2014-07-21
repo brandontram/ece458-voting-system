@@ -24,6 +24,9 @@ class SecureHTTPServer(HTTPServer):
         self.server_bind()
         self.server_activate()
 
+    def shutdown_request(self,request):
+        request.shutdown()
+
 
 class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
     def setup(self):
@@ -32,23 +35,27 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
 
     def do_GET(self):
-        self.send_response(200, 'OK')
-        self.send_header('Content-type', 'html')
-        self.end_headers()
-
         page = markup.page()
         page.init(title = "ECE 458 Voting System")
-        page.form()
+        page.form(method = "POST")
 
         sortedDict = sorted(candidates.iteritems(), key=operator.itemgetter(0))
         for key, value in sortedDict:
             page.input(type='radio', name='candidate', value='key')
             page.p(value)
 
-        page.form.close()
         page.input(type='submit', value='submit')
+        page.form.close()
 
-        self.wfile.write(bytes(page))
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-length", len(str(page)))
+        self.end_headers()
+
+        self.wfile.write(page)
+
+    def do_POST(self):
+        print "POST!"
 
 def test(HandlerClass = SecureHTTPRequestHandler,
          ServerClass = SecureHTTPServer):
