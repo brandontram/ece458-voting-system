@@ -61,6 +61,7 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         postBodyLen = int(self.headers.getheader('content-length', 0))
         postBody = self.rfile.read(postBodyLen)
+        print postBody
 
         votedId = postBody[len(radioBtnFieldName) + 1:]
 
