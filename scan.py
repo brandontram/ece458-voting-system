@@ -15,7 +15,6 @@ def main():
 		parsed_entry = line.split(' ')
 		gateway_ip_string = '(' + gateway_ip + ')'
 		if (gateway_ip_string in parsed_entry):
-			print(parsed_entry)
 			index = parsed_entry.index(gateway_ip_string)
 			arp_mac_address = str(parsed_entry[index + 2]) # mac address is always 2 tokens after IP
 
