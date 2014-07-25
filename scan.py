@@ -10,8 +10,6 @@ def main():
 	scan_result = nm.scan(hosts = gateway_ip, arguments = '-sO -n')
 	true_mac_address = str(scan_result['scan'][gateway_ip]['addresses']['mac'].lower())
 
-	print('true mac address', true_mac_address)
-
 	arp_table_raw = os.popen('arp -a')
 	for line in arp_table_raw:
 		parsed_entry = line.split(' ')
@@ -20,7 +18,6 @@ def main():
 			print(parsed_entry)
 			index = parsed_entry.index(gateway_ip_string)
 			arp_mac_address = str(parsed_entry[index + 2]) # mac address is always 2 tokens after IP
-			print('arp mac address:' + arp_mac_address)
 
 	# ARP returns mac addresses without last 0
 	if (len(arp_mac_address) < len(true_mac_address)):
