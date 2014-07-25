@@ -1,36 +1,35 @@
-
-import sys
-import nmap, netifaces, socket
-
-
-# def procc():
-# 	iface = "en0"
-# 	address =  socket.gethostbyname(socket.gethostname())
-
-
-# 	nm = nmap.PortScanner()
-# 	nm.scan(hosts=address, arguments='-n -sO')
-# 	hosts_list = [(x, nm[x]['status']['state']) for x in nm.all_hosts()]
-# 	for host, status in hosts_list:
-	    # print(host)
-
+import sys, os, nmap, netifaces, socket
 
 def main():
-	
-	if (len(sys.argv) == 2):
-		iface = sys.argv[2]
-
 	gateway = netifaces.gateways()
 	gateway_ip  = gateway['default'][netifaces.AF_INET][0]
-
 	print("Gateway IP:", gateway_ip)
 	
 	nm = nmap.PortScanner()
 
-	scan_result = nm.scan(hosts=gateway_ip, arguments='-sO -n')
-	mac_address = scan_result['scan'][gateway_ip]['addresses']['mac']
+	scan_result = nm.scan(hosts = gateway_ip, arguments = '-sO -n')
+	true_mac_address = str(scan_result['scan'][gateway_ip]['addresses']['mac'].lower())
 
-	print('mac address', mac_address)
+	print('true mac address', true_mac_address)
+
+	arp_table_raw = os.popen('arp -a')
+	for line in arp_table_raw:
+		parsed_entry = line.split(' ')
+		gateway_ip_string = '(' + gateway_ip + ')'
+		if (gateway_ip_string in parsed_entry):
+			print(parsed_entry)
+			index = parsed_entry.index(gateway_ip_string)
+			arp_mac_address = str(parsed_entry[index + 2]) # mac address is always 2 tokens after IP
+			print('arp mac address:' + arp_mac_address)
+
+	# ARP returns mac addresses without last 0
+	if (len(arp_mac_address) < len(true_mac_address)):
+		arp_mac_address += '0'
+
+	if (true_mac_address == arp_mac_address):
+		print(true_mac_address + " == " + arp_mac_address + " (YOU ARE NOT BEING WATCHED)")
+	else:
+		print(true_mac_address + " != " + arp_mac_address + " (WATCH OUT! YOU ARE BEING WATCHED)")
 
 
 if __name__ == '__main__':
