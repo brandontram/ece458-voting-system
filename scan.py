@@ -1,12 +1,9 @@
-import sys, argparse, os, nmap, netifaces, socket
+import sys, argparse, os, nmap, netifaces, socket, threading
 
 parser = argparse.ArgumentParser(description="Detect active man in the middle attacks")
-parser.add_argument("-s", "--strict", action="store_true", help="Strict Mode")
 
 def main():
 	args = parser.parse_args()
-	strict_mode = args.strict
-
 	gateway = netifaces.gateways()['default']
 	if (len(gateway) < 1):
 		print("No gateway found")
@@ -32,10 +29,8 @@ def main():
 		print(true_mac_address + " == " + arp_mac_address + " (YOU ARE NOT BEING WATCHED)")
 	else:
 		print(true_mac_address + " != " + arp_mac_address + " (WATCH OUT! YOU ARE BEING WATCHED)")
-		if (strict_mode):
-			print("STRICT MODE: Suspected man in the middle. Closing connections")
-			os.system("sudo ipconfig set en1 NONE")
-			os.system("sudo ipconfig set en1 DHCP")
+
+	threading.Timer(1, main).start()
 
 if __name__ == '__main__':
 	main()
