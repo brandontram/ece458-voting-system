@@ -6,6 +6,7 @@ PURIFY_RETRIES = 3
 
 args = parser.parse_args()
 debug = args.debug
+nm = nmap.PortScanner()
 
 def main():
 	gateway = netifaces.gateways()['default']
@@ -21,10 +22,8 @@ def main():
 		threading.Timer(1, main).start()
 
 def detect_arp_spoof(gateway_ip):
-	nm = nmap.PortScanner()
-
 	scan_result = nm.scan(hosts = gateway_ip, arguments = '-sP -n')
-	true_mac_address = str(scan_result['scan'][gateway_ip]['addresses']['mac'].lower())
+	true_mac_address = get_true_mac(gateway_ip)
 	arp_mac_address = get_mac_from_arp(gateway_ip)
 
 	arp_spoof_detected = true_mac_address != arp_mac_address
@@ -34,6 +33,10 @@ def detect_arp_spoof(gateway_ip):
 		print(true_mac_address + " != " + arp_mac_address + " (WATCH OUT! YOU ARE BEING WATCHED)")
 
 	return arp_spoof_detected
+
+def get_true_mac(ip):
+	scan_result = nm.scan(hosts = ip, arguments = '-sP -n')
+	return str(scan_result['scan'][ip]['addresses']['mac'].lower())
 
 def get_mac_from_arp(ip):
 	arp_table_raw = os.popen('arp -a')
@@ -50,7 +53,7 @@ def purify_arp_cache(poisoned_arp_ip):
 	for i in range(0, PURIFY_RETRIES):
 		print("ARP CACHE PURIFY ATTEMPT " + str(i))
 		os.system("arp -d " + poisoned_arp_ip)
-		os.system("ping -c 1 " + poisoned_arp_ip)
+		os.system("arp -s " + poisoned_arp_ip + " " + get_true_mac(poisoned_arp_ip))
 		if not detect_arp_spoof(poisoned_arp_ip):
 			print("ARP CACHE ENTRY PURIFIED. IP: " + poisoned_arp_ip + ", MAC: " + get_mac_from_arp(poisoned_arp_ip))
 			break
